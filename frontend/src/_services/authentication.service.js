@@ -6,6 +6,7 @@ const currentUserSubject = new BehaviorSubject(JSON.parse(localStorage.getItem('
 
 export const authenticationService = {
   login,
+  ssoLogin,
   logout,
   signup,
   updateCurrentUserDetails,
@@ -31,6 +32,36 @@ function login(email, password) {
       currentUserSubject.next(user);
 
       return user;
+    });
+}
+
+function ssoLogin() {
+  const requestOptions = {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+  };
+
+  /**
+   * Read Tokken from url and send sso login apiCall
+   */
+
+  const url = `${config.apiUrl}/ssologin?tokken=${window.location.href.split('tokken=')[1]}`;
+
+  return fetch(url, requestOptions)
+    .then(handleResponse)
+    .then((user) => {
+      console.log('sso user Logged in', user);
+      // store user details and jwt token in local storage to keep user logged in between page refreshes
+      localStorage.setItem('currentUser', JSON.stringify(user));
+      currentUserSubject.next(user);
+
+      return { status: true, user };
+    })
+    .catch((e) => {
+      return {
+        status: false,
+        message: e.message,
+      };
     });
 }
 

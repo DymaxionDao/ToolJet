@@ -1,4 +1,4 @@
-import { Controller, Get, Request, Post, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Query, Request, UseGuards } from '@nestjs/common';
 import { PasswordLoginDisabledGuard } from 'src/modules/auth/password-login-disabled.guard';
 import { AuthService } from '../services/auth.service';
 
@@ -10,6 +10,11 @@ export class AppController {
   @Post('authenticate')
   async login(@Request() req) {
     return this.authService.login(req.body);
+  }
+
+  @Post('ssologin')
+  async sso(@Query('tokken') tokken: string) {
+    return this.authService.ssologin(tokken);
   }
 
   @UseGuards(PasswordLoginDisabledGuard)

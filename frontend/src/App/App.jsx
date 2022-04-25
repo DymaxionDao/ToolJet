@@ -21,6 +21,7 @@ import { ForgotPassword } from '@/ForgotPassword';
 import { ResetPassword } from '@/ResetPassword';
 import { lt } from 'semver';
 import { Toaster } from 'react-hot-toast';
+import { SsoLoginPage } from '@/SsoLoginPage';
 
 class App extends React.Component {
   constructor(props) {
@@ -118,6 +119,8 @@ class App extends React.Component {
               darkMode={darkMode}
             />
             <Route path="/login" component={LoginPage} />
+            <Route path="/sso" component={SsoLoginPage} />
+
             <Route path="/sso/:origin" component={Oauth} />
             <Route path="/signup" component={SignupPage} />
             <Route path="/forgot-password" component={ForgotPassword} />

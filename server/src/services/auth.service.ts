@@ -1,11 +1,14 @@
-import { Injectable, NotFoundException, UnauthorizedException, NotAcceptableException } from '@nestjs/common';
-import { UsersService } from './users.service';
-import { OrganizationsService } from './organizations.service';
+import { Injectable, NotAcceptableException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { User } from '../entities/user.entity';
-import { OrganizationUsersService } from './organization_users.service';
-import { EmailService } from './email.service';
 import { decamelizeKeys } from 'humps';
+import { User } from '../entities/user.entity';
+import { EmailService } from './email.service';
+import { OrganizationsService } from './organizations.service';
+import { OrganizationUsersService } from './organization_users.service';
+import { UsersService } from './users.service';
+// import fetch from 'node-fetch';
+import Axios from 'axios';
+
 const bcrypt = require('bcrypt');
 const uuid = require('uuid');
 
@@ -55,6 +58,52 @@ export class AuthService {
       });
     } else {
       throw new UnauthorizedException('Invalid credentials');
+    }
+  }
+
+  async SyncUser(userParam: any) {
+    const { email } = userParam;
+    const existingUser = await this.usersService.findByEmail(email);
+    if (existingUser) {
+      const newUser = await this.usersService.update(existingUser.id, { firstName: userParam.name });
+      return newUser;
+    }
+    const organization = await this.organizationsService.create('Untitled organization');
+    const user = await this.usersService.create({ email, firstName: userParam.name }, organization, [
+      'all_users',
+      'admin',
+    ]);
+    await this.organizationUsersService.create(user, organization);
+    await this.emailService.sendWelcomeEmail(user.email, user.firstName, user.invitationToken);
+    return user;
+  }
+
+  async ssologin(tokken: string) {
+    const sso_url = process.env.SSO_URL + '/sso/user?sso_session_tokken=' + tokken;
+    try {
+      const data = await Axios.get(sso_url);
+      const user = await this.SyncUser(data.data.user);
+      if (user && (await this.usersService.status(user)) !== 'archived') {
+        const payload = { username: user.id, sub: user.email };
+        return decamelizeKeys({
+          id: user.id,
+          auth_token: this.jwtService.sign(payload),
+          email: user.email,
+          first_name: user.firstName,
+          last_name: user.lastName,
+          admin: await this.usersService.hasGroup(user, 'admin'),
+          group_permissions: await this.usersService.groupPermissions(user),
+          app_group_permissions: await this.usersService.appGroupPermissions(user),
+        });
+      } else {
+        throw new UnauthorizedException('Invalid credentials');
+      }
+    } catch (err) {
+      return {
+        message: 'Failure',
+        status: 'failure',
+        data: err,
+      };
     }
   }
 
