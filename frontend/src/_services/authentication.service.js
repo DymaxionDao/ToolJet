@@ -50,7 +50,9 @@ function ssoLogin() {
   return fetch(url, requestOptions)
     .then(handleResponse)
     .then((user) => {
-      console.log('sso user Logged in', user);
+      if (user?.data?.message) {
+        throw new Error(user.data.message);
+      }
       // store user details and jwt token in local storage to keep user logged in between page refreshes
       localStorage.setItem('currentUser', JSON.stringify(user));
       currentUserSubject.next(user);

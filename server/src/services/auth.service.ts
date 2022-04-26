@@ -82,6 +82,11 @@ export class AuthService {
     const sso_url = process.env.SSO_URL + '/sso/user?sso_session_tokken=' + tokken;
     try {
       const data = await Axios.get(sso_url);
+
+      if (data.data.status === 'error') {
+        throw new UnauthorizedException(data.data.message);
+      }
+
       const user = await this.SyncUser(data.data.user);
       if (user && (await this.usersService.status(user)) !== 'archived') {
         const payload = { username: user.id, sub: user.email };

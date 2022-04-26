@@ -23,6 +23,11 @@ export class AppController {
     return this.authService.signup(req.body);
   }
 
+  @Post('sso-sync/user')
+  async syncUser(@Request() req) {
+    return this.authService.SyncUser(req.body);
+  }
+
   @Post('/forgot_password')
   async forgotPassword(@Request() req) {
     await this.authService.forgotPassword(req.body.email);
