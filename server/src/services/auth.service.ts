@@ -74,7 +74,7 @@ export class AuthService {
       'admin',
     ]);
     await this.organizationUsersService.create(user, organization);
-    await this.emailService.sendWelcomeEmail(user.email, user.firstName, user.invitationToken);
+    // await this.emailService.sendWelcomeEmail(user.email, user.firstName, user.invitationToken);
     return user;
   }
 
