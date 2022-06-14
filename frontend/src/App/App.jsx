@@ -52,6 +52,17 @@ class App extends React.Component {
       this.setState({ currentUser: x });
       this.fetchMetadata();
       setInterval(this.fetchMetadata, 1000 * 60 * 60 * 1);
+      window.addEventListener(
+        'message',
+        (event) => {
+          if (event.data == 'light') {
+            this.switchDarkMode(false);
+          } else {
+            this.switchDarkMode(true);
+          }
+        },
+        false
+      );
     });
   }
 
